@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  koapp:
+    build: .
+    # image: <IMAGE>
+    container_name: known-online-challenge-local
+    network_mode: host
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./src:/var/www/known-online-challenge
+    environment:
+      - PORT=8091
+      - DOCUMENTROOT=/var/www/known-online-challenge
+      - SERVERNAME=known-online-challenge.local
