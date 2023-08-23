@@ -126,6 +126,23 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'GuzzleAPI' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/GuzzleAPI.log'),
+            'level' => 'info',
+            'days' => 7,
+            'permission' => 0777
+        ],
+
+        //Commands Channels
+        'app:store_vtex_orders_ready_for_handling' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/store_vtex_orders_ready_for_handling.log'),
+            'level' => 'info',
+            'days' => 7,
+            'permission' => 0777
+        ],
     ],
 
 ];

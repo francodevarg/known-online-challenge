@@ -29,8 +29,16 @@ Instrucciones para levantar el proyecto Laravel Local:
     ```bash
         cp .env.local .env 
     ```
+4) Agregar las credenciales de VTEX a las variables de Entorno:
+    
+    ```bash
+        VTEX_ACCOUNT_NAME=
+        VTEX_ENVIRONMENT=
+        VTEX_API_APP_KEY=
+        VTEX_API_APP_TOKEN=
+    ```
 
-4) Correr Script de deploy
+6) Correr Script de deploy
     ```bash
         cd /opt/docker/known-online-challenge/docker-files/scripts
     ```
@@ -43,4 +51,4 @@ Instrucciones para levantar el proyecto Laravel Local:
     ```bash
         docker logs -f known-online-challenge-local
     ```
-5) Abrir el navegador http://known-online-challenge.local/
+7) Abrir el navegador http://known-online-challenge.local/
