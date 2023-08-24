@@ -8,8 +8,7 @@ final class GuzzleAPI {
 
     const LOG_CHANNEL = 'GuzzleAPI';
     
-    /**
-     * 
+    /** 
      *  Return json_decode array only if Status Code == 200,
      *  otherwise return []
      *  @param string $uri
@@ -21,6 +20,7 @@ final class GuzzleAPI {
         try {
             $returnData = [];
 
+            //Set default Header
             if(is_null($option_header)) {
                 $option_header = [  
                     'headers' => [
@@ -35,6 +35,7 @@ final class GuzzleAPI {
                 ];    
             }
 
+            //Set Query Parameters
             if(!is_null($queryParams)) $option_header['query'] = $queryParams;
             
             $client = new Client();
@@ -47,9 +48,11 @@ final class GuzzleAPI {
             }
             
             return $returnData;
+
         } catch (\Exception $ex) {
+            //Log the exception
             $message = "Error at get() method: ( class GuzzleAPI )- Exception: ";
-            $messageAndError = $message . $ex->getMessage();
+            $messageAndError = $message . $ex->getMessage() . PHP_EOL;
             Log::channel(self::LOG_CHANNEL)->error($messageAndError);
             echo($messageAndError);
         }
