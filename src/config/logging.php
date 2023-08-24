@@ -138,7 +138,16 @@ return [
         //Commands Channels
         'app:store_vtex_orders_ready_for_handling' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/store_vtex_orders_ready_for_handling.log'),
+            'path' => storage_path('logs/process_&_save_vtex_orders_ready_for_handling.log'),
+            'level' => 'info',
+            'days' => 7,
+            'permission' => 0777
+        ],
+
+        //Storage MYSQL Channels
+        'VTEX_Orders_Ready_For_Handling_In_MySQL' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/storage_vtex_orders_ready_for_handling.log'),
             'level' => 'info',
             'days' => 7,
             'permission' => 0777
