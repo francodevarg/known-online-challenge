@@ -17,7 +17,7 @@ return new class extends Migration
             $table->bigInteger('order_id')->unsigned();
             $table->string('vtex_product_id');
             $table->string('name');
-            $table->string('refId');
+            $table->string('refId')->nullable();
             $table->integer('quantity');
             
             $table->timestamps();

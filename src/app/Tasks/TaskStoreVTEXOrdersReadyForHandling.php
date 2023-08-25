@@ -13,10 +13,10 @@ class TaskStoreVTEXOrdersReadyForHandling
     const LOG_CHANNEL = 'app:store_vtex_orders_ready_for_handling';
 
     //CredentialsVTEX
-    const X_VTEX_API_AppKey = 'VTEX_API_APP_KEY';
-    const X_VTEX_API_AppToken = 'VTEX_API_APP_TOKEN';
-    const VTEX_ENVIRONMENT = 'VTEX_ENVIRONMENT';
-    const VTEX_ACCOUNT_NAME = 'VTEX_ACCOUNT_NAME';
+    private const X_VTEX_API_AppKey = 'VTEX_API_APP_KEY';
+    private const X_VTEX_API_AppToken = 'VTEX_API_APP_TOKEN';
+    private const VTEX_ENVIRONMENT = 'VTEX_ENVIRONMENT';
+    private const VTEX_ACCOUNT_NAME = 'VTEX_ACCOUNT_NAME';
 
 
     /**
@@ -27,7 +27,7 @@ class TaskStoreVTEXOrdersReadyForHandling
         $URI = static::getOrderURI();
         $option_header = static::getHeaderWithAuthentication();
 
-        $totalOrdersProcessed = 0;
+        $currentOrdersVTEX = 0;
         $currentPage = 1;
         $totalPages = 999999;
 
@@ -41,41 +41,40 @@ class TaskStoreVTEXOrdersReadyForHandling
 
                 $totalPages = $dataOrders['paging']['pages'];
                 $totalOrdersVTEX = $dataOrders['paging']['total'];
-                
+
                 $ordersList = $dataOrders['list'];
                 foreach ($ordersList as $order) {
-                    $orderID = $order['orderId'];
-                    
-                    $URIsingleOrder = static::getOrderURI($orderID);
-
+                    $URIsingleOrder = static::getOrderURI($order['orderId']);
                     // Fetch Single Order /orders/{order_id} API
                     $dataSingleOrder = GuzzleAPI::get($URIsingleOrder, $option_header, null);
 
-                    // Structuring Data
+                    // Structuring Data Before Save In DB.
                     $clientObject = static::parseToObjectOrderClient($dataSingleOrder);
-                    $orderArray = static::convertArrayOrder($orderID,$order['paymentNames'],$order['totalValue']);
+                    $orderArray = static::convertArrayOrder($order['orderId'], $order['paymentNames'], $order['totalValue']);
                     $itemsProducts = static::getArrayItemsFromOrder($dataSingleOrder['items']);
-                    
+
                     //Log
-                    static::logProcessedOrder($orderArray, $clientObject); 
-                    
+                    static::logProcessedOrder($orderArray, $clientObject);
+
                     //Storage In DB.
                     static::saveInDB($clientObject, $orderArray, $itemsProducts);
 
 
-                    $totalOrdersProcessed++;
+                    $currentOrdersVTEX++;
                 }
 
-                //Only one Page => 15 per page default API
-                die;
+                //Log Current Page
+                static::logTotalProcessed($currentPage, $totalPages, $currentOrdersVTEX, $totalOrdersVTEX);
+
 
                 //NextPage
                 $currentPage++;
             } catch (\Exception $ex) {
+                Log::channel(self::LOG_CHANNEL)->error('process: ' . $ex->getMessage());
                 throw new \Exception($ex->getMessage());
             }
-        }
-    }
+        } //end of While.
+    } //end of process.
 
     /**
      * @return string URI to get Orders from VTEX Store, that 
@@ -186,7 +185,8 @@ class TaskStoreVTEXOrdersReadyForHandling
         Log::channel(self::LOG_CHANNEL)->info($message);
     }
 
-    private static function convertArrayOrder($orderID,$paymentMethod,$totalAmountOrder){
+    private static function convertArrayOrder($orderID, $paymentMethod, $totalAmountOrder)
+    {
         return [
             'vtex_order_id' => $orderID,
             'paymentMethod' => $paymentMethod,
@@ -230,25 +230,32 @@ class TaskStoreVTEXOrdersReadyForHandling
                         'quantity' => $product['quantity'],
                     ]
                 );
-                static::logSaveInDB($order,$client,$currentProduct);
+                static::logSaveInDB($order, $client, $currentProduct);
             }
         } catch (\Exception $ex) {
-            Log::channel(self::LOG_CHANNEL)->error('saveInDB: ' . $ex->getMessage());
+            Log::channel(self::LOG_CHANNEL.'_DB_Store')->error('saveInDB: ' . $ex->getMessage());
         }
     }
 
 
-    private static function logSaveInDB($order, $client,$product)
+    private static function logSaveInDB($order, $client, $product)
     {
         $message = 'VTEX_OrderID: ' . $order['vtex_order_id'] . '|' . ' ClientFirstName: ' .
             $client['firstName'] . '|' . ' ClientLastName: '
-            . $client['lastName']. '|' . ' PaymentMethod: '
+            . $client['lastName'] . '|' . ' PaymentMethod: '
             . $order['paymentMethod'] . '|' . ' TotalAmount: '
-            . $order['totalAmount']. '|' . ' ProductName: '
-            . $product['name'].'|'. ' ProductRefId: '
-            . $product['refId']
-            ;
-        Log::channel('VTEX_Orders_Ready_For_Handling_In_MySQL')->info($message);
+            . $order['totalAmount'] . '|' . ' ProductName: '
+            . $product['name'] . '|' . ' ProductRefId: '
+            . $product['refId'] . '| SAVED';
+        Log::channel(self::LOG_CHANNEL.'_DB_Store')->info($message);
     }
 
+    private static function logTotalProcessed($currentPage, $totalPages, $currentOrdersVTEX, $totalOrdersVTEX)
+    {
+        $pageMessage = '===== Page: ' . $currentPage . ' of ' . $totalPages . ' | '
+            . ' TotalOrdersVTEXProcessed: ' . $currentOrdersVTEX . ' of ' . $totalOrdersVTEX;
+        echo $pageMessage . PHP_EOL;
+        Log::channel(self::LOG_CHANNEL)->info($pageMessage);
+        Log::channel(self::LOG_CHANNEL.'_DB_Store')->info($pageMessage);
+    }
 }
