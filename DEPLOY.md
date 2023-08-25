@@ -1,9 +1,8 @@
 # Deploy
----
 ES
-
-### Local
-Pre requisitos:
+---
+## Local
+_Pre requisitos_:
 - Motor de base de datos MySQL en local.
 
 
@@ -38,6 +37,17 @@ Instrucciones para levantar el proyecto Laravel Local:
         VTEX_API_APP_TOKEN=
     ```
 
+5) Agregar la conección a MYSQL Local:
+    
+    ```bash
+        DB_CONNECTION=
+        DB_HOST=
+        DB_PORT=
+        DB_DATABASE=
+        DB_USERNAME=
+        DB_PASSWORD=
+    ```
+
 6) Correr Script de deploy
     ```bash
         cd /opt/docker/known-online-challenge/docker-files/scripts
@@ -51,4 +61,15 @@ Instrucciones para levantar el proyecto Laravel Local:
     ```bash
         docker logs -f known-online-challenge-local
     ```
-7) Abrir el navegador http://known-online-challenge.local/
+7) Correr migraciones en la DB:
+    
+    ```bash
+        php artisan migrate
+    ```
+    Podes hacerlo dentro del contenedor, ingresando con :
+
+    ```bash
+        docker exec -it known-online-challenge-local bash
+    ```
+
+9) Abrir el navegador http://known-online-challenge.local/
